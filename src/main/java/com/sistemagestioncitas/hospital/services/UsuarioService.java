@@ -1,5 +1,6 @@
 package com.sistemagestioncitas.hospital.services;
 
+import java.util.List;
 import java.util.Optional;
  
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    public List<Usuario> listarTodos() {
+        return usuarioRepository.findAll();
+    }
  
     public Optional<Usuario> obtenerPorId(Long id) {
        return usuarioRepository.findById(id);

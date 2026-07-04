@@ -13,7 +13,7 @@ import com.sistemagestioncitas.hospital.repository.MedicoRepository;
 public class MedicoService {
     @Autowired
     private MedicoRepository medicoRepository;
-    public List<Medico>listartodos(){
+    public List<Medico>listarTodos(){
         return medicoRepository.findAll();
     }
     public Optional<Medico> obtenerPorId(Long id) {
