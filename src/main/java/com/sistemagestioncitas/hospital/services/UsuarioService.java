@@ -32,6 +32,10 @@ public class UsuarioService {
     public Usuario actualizar(Usuario usuario){
         return usuarioRepository.save(usuario);
     }
+    public void actualizarPassword(Usuario usuario, String newPass){
+        usuario.setpassword(passwordEncoder.encode(newPass));
+        usuarioRepository.save(usuario);
+    }
     public void desactivar(Long  id){
         Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         usuario.setactivo(false);

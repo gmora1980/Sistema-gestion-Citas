@@ -59,7 +59,7 @@ public class UsuarioController {
 
             //VALIDACION DE CORREO Y CEDULA
             Optional<Usuario> existente = usuarioService.obtenerPorId(usuario.getid());
-            if(existente.isPresent(){
+            if(existente.isPresent()){
                 Usuario actual = existente.get();
                 //Cambio de correo , verificacion de existencia
                 if(!actual.getcorreo().equals(usuario.getcorreo())&& usuarioService.existeCorreo(usuario.getcorreo())){
