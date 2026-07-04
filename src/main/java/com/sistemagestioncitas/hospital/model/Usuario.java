@@ -32,18 +32,18 @@ public class Usuario {
     public Usuario() {
         this.activo = true;
     }
-    public Long getId() {
+    public Long getid() {
         return id;
     }
-    public void setId(Long id) {
+    public void setid(Long id) {
         this.id = id;
 
     }
 
-    public String getNombre() {
+    public String getnombre() {
         return nombre;
     }
-    public void setNombre(String nombre) {
+    public void setnombre(String nombre) {
         this.nombre = nombre;
     }
 
@@ -74,7 +74,7 @@ public class Usuario {
     public String getpassword() {
         return password;
     }
-    public void setPassword(String password) {
+    public void setpassword(String password) {
         this.password = password;
 
     }
@@ -83,16 +83,16 @@ public class Usuario {
     public String getrol() {
         return rol;
     }
-    public void setRol(String rol) {
+    public void setrol(String rol) {
         this.rol = rol;
 
     }
 
     
-    public boolean isActivo() {
+    public boolean isactivo() {
         return activo;
     }
-    public void setActivo(boolean activo) {
+    public void setactivo(boolean activo) {
         this.activo = activo;
     }
 
