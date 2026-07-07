@@ -11,20 +11,23 @@ import com.sistemagestioncitas.hospital.repository.MedicoRepository;
 
 @Service
 public class MedicoService {
+
     @Autowired
     private MedicoRepository medicoRepository;
-    public List<Medico>listarTodos(){
+
+    public List<Medico> listarTodos() {
         return medicoRepository.findAll();
     }
+
     public Optional<Medico> obtenerPorId(Long id) {
         return medicoRepository.findById(id);
     }
-    public Medico guardar(Medico medico){
+
+    public Medico guardar(Medico medico) {
         return medicoRepository.save(medico);
     }
-    public void eliminar(Long id){
+
+    public void eliminar(Long id) {
         medicoRepository.deleteById(id);
     }
-    
-
 }

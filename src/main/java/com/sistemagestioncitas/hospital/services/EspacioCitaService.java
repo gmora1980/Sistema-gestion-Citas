@@ -14,29 +14,31 @@ public class EspacioCitaService {
 
     @Autowired
     private EspacioCitaRepository espacioCitaRepository;
+
     public List<EspacioCita> listarTodos() {
         return espacioCitaRepository.findAll();
     }
+
     public List<EspacioCita> listarPorMedico(Long medicoId) {
         return espacioCitaRepository.findByMedicoId(medicoId);
     }
-    public List<EspacioCita> listarDisponibles(){
-        return espacioCitaRepository.findByOcupadoFalse();
 
+    public List<EspacioCita> listarDisponibles() {
+        return espacioCitaRepository.findByOcupadoFalse();
     }
+
     public Optional<EspacioCita> obtenerPorId(Long id) {
         return espacioCitaRepository.findById(id);
     }
 
     public EspacioCita guardar(EspacioCita espacio) {
         return espacioCitaRepository.save(espacio);
-
     }
-    public void ocupar(Long id){
-        EspacioCita espacio = espacioCitaRepository.findById(id).orElseThrow(() -> new RuntimeException("USUARIO NO ENCONTRADO"));
-        espacio.setocupado(true);
+
+    public void ocupar(Long id) {
+        EspacioCita espacio = espacioCitaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("USUARIO NO ENCONTRADO"));
+        espacio.setOcupado(true);
         espacioCitaRepository.save(espacio);
     }
-
 }
-
