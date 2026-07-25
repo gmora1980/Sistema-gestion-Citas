@@ -38,14 +38,15 @@ public class SecurityConfig {
                         .hasAnyRole("USUARIO", "ADMIN")
 
                         .requestMatchers("/usuario/listaUsuarios",
-                                "/usuario/editar/**",
-                                "/usuario/desactivar/**",
-                                "/usuario/admin/**",
-                                "/medico/nuevo",
-                                "/medico/guardar",
-                                "/medico/editar/**",
-                                "/medico/eliminar/**",
-                                "/medico/espacio/**")
+                                         "/usuario/nuevo",
+                                         "/usuario/editar/**",
+                                         "/usuario/desactivar/**",
+                                         "/usuario/admin/**",
+                                         "/medico/nuevo",
+                                         "/medico/guardar",
+                                         "/medico/editar/**",
+                                         "/medico/eliminar/**",
+                                         "/medico/espacio/**")
                         .hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
