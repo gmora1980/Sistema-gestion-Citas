@@ -21,10 +21,19 @@ public class Medico {
     private Long id;
     private String nombre;
     private String especialidad;
+    private  boolean activo;
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
     @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<EspacioCita> espacios;
-    @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL, orphanRemoval = true)  
+    @OneToMany(mappedBy = "medico", cascade = {CascadeType.PERSIST, CascadeType.MERGE})  
     @JsonIgnore  
     private List<Cita> citas;
 
