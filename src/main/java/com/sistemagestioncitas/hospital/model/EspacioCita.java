@@ -2,6 +2,9 @@ package com.sistemagestioncitas.hospital.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -21,22 +24,15 @@ public class EspacioCita {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDate fecha;
-    private LocalTime horainicio;
-    private LocalTime horafin;
+    private LocalTime horaInicio;
+    private LocalTime horaFin;
     private boolean ocupado = false;
     @ManyToOne
     @JoinColumn(name = "medico_id")
     private Medico medico;
     @OneToMany(mappedBy = "espacioCita", cascade = CascadeType.ALL)
-    private Cita cita;    
-
-    public Cita getCita() {
-        return cita;
-    }
-
-    public void setCita(Cita cita) {
-        this.cita = cita;
-    }
+    @JsonIgnore
+    private List<Cita> citas;
 
     public Long getId() {
         return id;
@@ -54,20 +50,20 @@ public class EspacioCita {
         this.fecha = fecha;
     }
 
-    public LocalTime getHorainicio() {
-        return horainicio;
+    public LocalTime getHoraInicio() {
+        return horaInicio;
     }
 
-    public void setHorainicio(LocalTime horainicio) {
-        this.horainicio = horainicio;
+    public void setHoraInicio(LocalTime horaInicio) {
+        this.horaInicio = horaInicio;
     }
 
-    public LocalTime getHorafin() {
-        return horafin;
+    public LocalTime getHoraFin() {
+        return horaFin;
     }
 
-    public void setHorafin(LocalTime horafin) {
-        this.horafin = horafin;
+    public void setHoraFin(LocalTime horaFin) {
+        this.horaFin = horaFin;
     }
 
     public boolean isOcupado() {
@@ -84,6 +80,14 @@ public class EspacioCita {
 
     public void setMedico(Medico medico) {
         this.medico = medico;
+    }
+
+    public List<Cita> getCitas() {
+        return citas;
+    }
+
+    public void setCitas(List<Cita> citas) {
+        this.citas = citas;
     }
 
 }

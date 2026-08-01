@@ -2,6 +2,7 @@ package com.sistemagestioncitas.hospital.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -27,26 +28,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller
 public class citaController {
-    @Autowired
+       @Autowired
     private CitaService citaService;
     @Autowired
     private MedicoService medicoService;
     @Autowired
     private EspacioCitaService espacioCitaService;
     @Autowired
-    private UsuarioService usuarioService; // Se necesita para obtener el usuario real de la base de datos
+    private UsuarioService usuarioService; // Se necesita para obtener el usuario real de la BD
 
     /**
-     * Metodo auxiliar para obtener el usuario autenticado de manera segura
+     * Método auxiliar para obtener el usuario autenticado de forma segura
      */
     private Usuario obtenerUsuarioActual(Principal principal) {
         return usuarioService.buscarPorCorreo(principal.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en la sesion"));
-
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado en la sesión"));
     }
 
     /**
-     * Listar Citas del usuario actual( filtro opcional por estado)
+     * Listar citas del usuario actual (filtro opcional por estado)
      */
     @GetMapping("/cita/mis-citas")
     public String listarMisCitas(Principal principal, Model model,
@@ -57,7 +57,6 @@ public class citaController {
             citas = citaService.getCitasPorUsuarioYEstado(usuarioActual.getId(), estado);
         } else {
             citas = citaService.getCitasPorUsuario(usuarioActual.getId());
-
         }
         model.addAttribute("citas", citas);
         return "cita/misCitas";
@@ -70,18 +69,24 @@ public class citaController {
     public String mostrarFormularioNuevaCita(Model model, Principal principal) {
         Usuario usuarioActual = obtenerUsuarioActual(principal);
         model.addAttribute("medicos", medicoService.listarTodos());
-        model.addAttribute("usuarioId", usuarioActual.getId());// Para el campo oculto del form
+        model.addAttribute("usuarioId", usuarioActual.getId()); // Para el campo oculto del form
+        if (usuarioActual.getRol().equals("ADMIN")) {
+            List<Usuario> todosLosUsuarios = usuarioService.listarTodos();
+            List<Usuario> pacientes = todosLosUsuarios.stream()
+                    .filter(u -> !"ADMIN".equals(u.getRol()))
+                    .collect(Collectors.toList());
+            model.addAttribute("usuarios", pacientes);
+        }
         return "cita/formularioNuevaCita";
-
     }
 
     /**
-     * Endpoint AJAX : Obtener espacios DISPONIBLES de un medico especifico
+     * Endpoint AJAX: Obtener espacios DISPONIBLES de un médico especifico
      */
     @GetMapping("/cita/espacios/{medicoId}")
     @ResponseBody
     public List<EspacioCita> getEspaciosPorMedico(@PathVariable Long medicoId) {
-        return espacioCitaService.listarDisponiblePorMedico(medicoId);
+        return espacioCitaService.listarDisponiblesPorMedico(medicoId);
     }
 
     /**
@@ -89,122 +94,128 @@ public class citaController {
      */
     @PostMapping("/cita/guardar")
     public String guardarCita(@RequestParam Long espacioCitaId,
-            @RequestParam(required=false) Long usuarioIdSeleccionado,// Nuevo parametro opcional
+            @RequestParam(required = false) Long usuarioIdSeleccionado, // Nuevo párametro opcional
             Principal principal,
             RedirectAttributes redirectAttributes) {
         try {
             Usuario usuarioActual = obtenerUsuarioActual(principal);
             Usuario usuarioDestino;
-            //1 - Determinar para quien es la cita
-            if(usuarioActual.getRol().equals("ADMIN")){
-                if(usuarioIdSeleccionado==null){ 
-                    throw new RuntimeException(" El administrador debe seleccionar un paciente");
+            // 1- Determinar para quien es la cita
+            if (usuarioActual.getRol().equals("ADMIN")) {
+                if (usuarioIdSeleccionado == null) {
+                    throw new RuntimeException("El administrador debe seleccionar un paciente");
                 }
-                usuarioDestino=usuarioService.obtenerPorId(usuarioIdSeleccionado)
-                .orElseThrow(()->new RuntimeException("Paciente seleccionado no encontrado"));
-            }else{
-                //Usuario normal: Usa su propio ID(Seguridad RN8)
-                usuarioDestino= usuarioActual;
+                usuarioDestino = usuarioService.obtenerPorId(usuarioIdSeleccionado)
+                        .orElseThrow(() -> new RuntimeException("Paciente seleccionado no encontrado"));
+            } else {
+                // Usuario normal: Usa su propio ID (Seguridad RN8)
+                usuarioDestino = usuarioActual;
             }
-            //2 Crear la cita.  El service se hace cargo de las RN
+            // 2- Crear la cita. El service se hace cargo de las RN
             Cita cita = citaService.crearCita(usuarioDestino.getId(), espacioCitaId, usuarioDestino);
             // 3- Mensaje y redireccion segun el rol
-            if(usuarioActual.getRol().equals("ADMIN")){
-                redirectAttributes.addFlashAttribute("exito", "Cita reservada exitosamente para el paciente seleccionado");
-            return "redirect:/cita/admin";
-
+            if (usuarioActual.getRol().equals("ADMIN")) {
+                redirectAttributes.addFlashAttribute("exito",
+                        "Cita reservada exitosamente para el paciente seleccionado");
+                return "redirect:/cita/admin";
             } else {
                 redirectAttributes.addFlashAttribute("exito", "Cita reservada exitosamente");
-            return "redirect:/cita/mis-citas";
+                return "redirect:/cita/mis-citas";
             }
-            
-
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error al reservar:" + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error al reservar: " + e.getMessage());
             return "redirect:/cita/nueva";
-
         }
-
     }
 
     /**
-     * Cancelar Cita (USUARIO)
-     * 
+     * Cancelar cita (USUARIO)
      */
-    @GetMapping("/cita/cancelar{id}")
+    @GetMapping("/cita/cancelar/{id}")
     public String cancelarCitaUsuario(@PathVariable Long id,
             Principal principal,
             RedirectAttributes redirectAttributes) {
-        try{
-            Usuario usuarioActual = obtenerUsuarioActual (principal);
-            // El service valida que la cita y fecha no hayan pasado
+        try {
+            Usuario usuarioActual = obtenerUsuarioActual(principal);
+            // El service valida que la cita y la fecha no hayan pasado
             citaService.cancelarCitaUsuario(id, usuarioActual);
-             redirectAttributes.addFlashAttribute("exito", "Cita cancelada");
-
-        } catch (Exception e ){
-            redirectAttributes.addFlashAttribute("error", "Error al reservar:" + e.getMessage());
-
+            redirectAttributes.addFlashAttribute("exito", "Cita cancelada exitosamente");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al cancelar la cita: " + e.getMessage());
         }
-        return "redirect:/cita/nueva";
-
+        return "redirect:/cita/mis-citas";
     }
+
     /**
-     * Panel de administracion de citas para el administrador(Aplicacion de Filtros)
+     * Panel de administración de citas para el administrador (Aplicacion de
+     * filtros)
      */
     @GetMapping("/cita/admin")
-    public String adminCitas(Model model, @RequestParam(required = false)String estado,@RequestParam(required = false)Long medicoId){
+    public String adminCitas(Model model,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Long medicoId) {
         List<Cita> cita;
-        if(estado!=null && !estado.isEmpty()){
-            cita=citaService.getCitasPorEstado(estado);
-        }else if(medicoId!=null){
-            cita=citaService.getCitasPorMedico(medicoId);
-        }else {
-            cita=citaService.getAllCitas();
+        if (estado != null && !estado.isEmpty()) {
+            cita = citaService.getCitasPorEstado(estado);
+        } else if (medicoId != null) {
+            cita = citaService.getCitasPorMedico(medicoId);
+        } else {
+            cita = citaService.getAllCitas();
         }
         model.addAttribute("citas", cita);
-        model.addAttribute("medicos",medicoService.listarTodos());
-        // Datos Opcionales para estadisticas en Dashboard
-        model.addAttribute("totalPendientes",citaService.getCitasPorEstado("PENDIENTE").size());
-        model.addAttribute("totalConfirmadas",citaService.getCitasPorEstado("CONFIRMDAS").size());
-        model.addAttribute("totalPresenes",citaService.getCitasPorEstado("PRESENTE").size());
-        model.addAttribute("totalAusentes",citaService.getCitasPorEstado("AUSENTE").size());
-        model.addAttribute("totalCanceladas",citaService.getCitasPorEstado("CANCELADA").size());
-        return"cita/admin/cita";
-
+        model.addAttribute("medicos", medicoService.listarTodos());
+        // Datos opcionales para estadisticas del dashboard
+        model.addAttribute("totalPendientes", citaService.getCitasPorEstado("PENDIENTE").size());
+        model.addAttribute("totalConfirmadas", citaService.getCitasPorEstado("CONFIRMADA").size());
+        model.addAttribute("totalPresentes", citaService.getCitasPorEstado("PRESENTE").size());
+        model.addAttribute("totalAusentes", citaService.getCitasPorEstado("AUSENTE").size());
+        model.addAttribute("totalCanceladas", citaService.getCitasPorEstado("CANCELADA").size());
+        return "cita/admin/cita";
     }
+
     /**
      * Confirmar Citas
      */
-    @GetMapping("cita/admin/confirmar/{id}")
+    @GetMapping("/cita/admin/confirmar/{id}")
     public String confirmarCitaAdmin(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try{
+        try {
             citaService.confirmarCita(id);
-            redirectAttributes.addFlashAttribute("exito", "Cita confirmada de forma Exitosa");
-
-        }catch (Exception e){
-            redirectAttributes.addFlashAttribute("error", "Error al confirmar la cita:" + e.getMessage());
+            redirectAttributes.addFlashAttribute("exito", "Cita confirmada de forma exitosa");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al confirmar la cita: " + e.getMessage());
         }
         return "redirect:/cita/admin";
-        
     }
+
     /**
-     * Cancelar Cita Admin
+     * Cancelar cita Admin
      */
     @PostMapping("/cita/admin/cancelar/{id}")
     public String cancelarCitaAdmin(@PathVariable Long id,
-                                    @RequestParam(required=false) String motivo,
-                                    RedirectAttributes redirectAttributes){
-    try{
-            citaService.cancelarCitaAdmin(id,motivo);
+            @RequestParam(required = false) String motivo,
+            RedirectAttributes redirectAttributes) {
+        try {
+            citaService.cancelarCitaAdmin(id, motivo);
             redirectAttributes.addFlashAttribute("exito", "Cita cancelada exitosamente. Espacio liberado");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al cancelar la cita: " + e.getMessage());
         }
-        return "redirect:/citas/admin";
-    }    
-    
-    
+        return "redirect:/cita/admin";
+    }
+
+    /**
+     * Marcar cita como Ausente (ADMIN)
+     */
+    @PostMapping("/cita/admin/ausente/{id}")
+    public String marcarAusente(@PathVariable Long id,
+            @RequestParam(required = false) String motivo,
+            RedirectAttributes redirectAttributes) {
+        try {
+            citaService.marcarComoAusente(id, motivo);
+            redirectAttributes.addFlashAttribute("exito", "Cita marcada como AUSENTE. Espacio liberado.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        }
+        return "redirect:/cita/admin";
+    }
 }
-    
-
-

@@ -29,28 +29,26 @@ public class SecurityConfig {
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 http
                                 .authorizeHttpRequests(auth -> auth
-                                                // Rutas publicas ( sin autenticacion)
+                                                // Rutas públicas (sin autenticación)
                                                 .requestMatchers("/login", "/registro", "/registrar", "/recuperar",
                                                                 "/css/**", "/js/**", "/h2-console/**")
                                                 .permitAll()
-                                                // Rutas para USUARIO Y ADMIN (Gestion basica)
+                                                // Rutas para USUARIO y ADMIN (Gestión básica y citas propias)
                                                 .requestMatchers("/usuario/perfil", "/usuario/guardar",
                                                                 "/medico/", "/medico/*/espacios",
-                                                                "/cita/mis-citas", "/cita/nueva", "cita/espacios/**",
-                                                                "/cita/guarda/", "/cita/cancelar/**")
+                                                                "/cita/mis-citas", "/cita/nueva", "/cita/espacios/**",
+                                                                "/cita/guardar", "/cita/cancelar/**")
                                                 .hasAnyRole("USUARIO", "ADMIN")
-                                                // Rutas SOLO PARA ADMIN ( Panel de Administracion)
+                                                // Rutas SOLO PARA ADMIN (Panel de Administración)
                                                 .requestMatchers("/usuario/lista", "/usuario/editar/**",
-                                                                "/usuario/desactiver/**", "/usuario/admin/**",
+                                                                "/usuario/desactivar/**", "/usuario/admin/**",
                                                                 "/medico/nuevo", "/medico/guardar",
                                                                 "/medico/editar/**", "/medico/eliminar/**",
                                                                 "/medico/espacio/**", "/cita/admin/**",
                                                                 "/cita/admin/confirmar/**", "/cita/admin/presente/**",
                                                                 "/cita/admin/ausente/**")
                                                 .hasRole("ADMIN")
-                                                .anyRequest().authenticated()
-
-                                )
+                                                .anyRequest().authenticated())
                                 .formLogin(form -> form
                                                 .loginPage("/login")
                                                 .loginProcessingUrl("/login")

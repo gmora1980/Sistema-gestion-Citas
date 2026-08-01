@@ -1,9 +1,7 @@
 package com.sistemagestioncitas.hospital.model;
 
 import java.time.LocalDateTime;
-
 import javax.print.DocFlavor.STRING;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,30 +20,28 @@ public class Cita {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable=false)
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "medico_id", nullable=false)
+    @JoinColumn(name = "medico_id", nullable = false)
     private Medico medico;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "espacio_id", nullable=false )
-    private EspacioCita espacio;
-    @Column(nullable=false)
+    @JoinColumn(name = "espacio_cita_id", nullable = false)
+    private EspacioCita espacioCita;
+    @Column(nullable = false)
     private LocalDateTime fechaHora;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String estado;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaConfirmacion;
-    public LocalDateTime getFechaConfirmacion() {
-        return fechaConfirmacion;
-    }
-
-    public void setFechaConfirmacion(LocalDateTime fechaConfirmacion) {
-        this.fechaConfirmacion = fechaConfirmacion;
-    }
     private LocalDateTime fechaCancelacion;
     private String motivoCancelacion;
+
+    public Cita() {
+        this.fechaCreacion = LocalDateTime.now();
+        this.estado = "PENDIENTE";
+    }
 
     public Long getId() {
         return id;
@@ -72,11 +68,11 @@ public class Cita {
     }
 
     public EspacioCita getEspacio() {
-        return espacio;
+        return espacioCita;
     }
 
     public void setEspacio(EspacioCita espacio) {
-        this.espacio = espacio;
+        this.espacioCita = espacio;
     }
 
     public LocalDateTime getFechaHora() {
@@ -103,6 +99,14 @@ public class Cita {
         this.fechaCreacion = fechaCreacion;
     }
 
+    public LocalDateTime getFechaConfirmacion() {
+        return fechaConfirmacion;
+    }
+
+    public void setFechaConfirmacion(LocalDateTime fechaConfirmacion) {
+        this.fechaConfirmacion = fechaConfirmacion;
+    }
+
     public LocalDateTime getFechaCancelacion() {
         return fechaCancelacion;
     }
@@ -119,35 +123,32 @@ public class Cita {
         this.motivoCancelacion = motivoCancelacion;
     }
 
-    public Cita() {
-        this.fechaCreacion = LocalDateTime.now();
-        this.estado="PENDIENTE";
-    }
-    public void confirmar(){
-        if(!this.estado.equals("PENDIENTE")){
+    public void confirmar() {
+        if (!this.estado.equals("PENDIENTE")) {
             throw new IllegalStateException("Solo citas pendientes pueden confirmarse");
         }
-        this.estado="CONFIRMADA";
-        this.fechaConfirmacion =LocalDateTime.now();
-
+        this.estado = "CONFIRMADA";
+        this.fechaConfirmacion = LocalDateTime.now();
     }
-    public void cancelar(String motivo){
-        if(this.estado.equals("CANCELADA")){
-          throw new IllegalStateException("La cita ya esta cancelada");  
+
+    public void cancelar(String motivo) {
+        if (this.estado.equals("CANCELADA")) {
+            throw new IllegalStateException("La cita ya está cancelada");
         }
-        this.estado="CANCELADA";
+        this.estado = "CANCELADA";
         this.fechaCancelacion = LocalDateTime.now();
         this.motivoCancelacion = motivo;
-        
     }
-    public void marcarComoPresente(){
-        this.estado ="PRESENTE";
-        this.fechaConfirmacion =LocalDateTime.now();
+
+    public void marcarComoPresente() {
+        this.estado = "PRESENTE";
+        this.fechaConfirmacion = LocalDateTime.now();
     }
-    public void marcarComoAusente(String motivo){
-        this.estado="AUSENTE";
-        this.motivoCancelacion=(motivo !=null && !motivo.isEmpty())? motivo: " El paciente no se presento";
-         this.fechaCancelacion = LocalDateTime.now();
+
+    public void marcarComoAusente(String motivo) {
+        this.estado = "AUSENTE";
+        this.motivoCancelacion = (motivo != null && !motivo.isEmpty()) ? motivo : "El paciente no se presentó";
+        this.fechaCancelacion = LocalDateTime.now();
     }
 
 }
